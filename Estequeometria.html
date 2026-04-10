@@ -1,0 +1,1963 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estequiometría · Balanceo Perfecto</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg: #080b0f;
+            --bg2: #0d1117;
+            --bg3: #131920;
+            --border: rgba(255, 255, 255, 0.07);
+            --border2: rgba(255, 255, 255, 0.12);
+            --text: #e8edf2;
+            --muted: #5a6a7a;
+            --muted2: #8899aa;
+            --accent: #00d4aa;
+            --accent2: #0066ff;
+            --reactant: #38bdf8;
+            --product: #a78bfa;
+            --warn: #f59e0b;
+            --red: #f87171;
+            --glow: rgba(0, 212, 170, 0.15);
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 80% 50% at 20% 10%, rgba(0, 102, 255, 0.06) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 40% at 80% 80%, rgba(0, 212, 170, 0.05) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .grid-bg {
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.018) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.018) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 880px;
+            margin: 0 auto;
+            padding: 60px 24px 80px;
+        }
+
+        /* ── HEADER ── */
+        .header {
+            margin-bottom: 52px;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0, 212, 170, 0.08);
+            border: 1px solid rgba(0, 212, 170, 0.2);
+            color: var(--accent);
+            font-family: 'DM Mono', monospace;
+            font-size: 11px;
+            font-weight: 500;
+            letter-spacing: 0.15em;
+            padding: 5px 14px;
+            border-radius: 100px;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+        }
+
+        .badge::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--accent);
+            box-shadow: 0 0 8px var(--accent);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.5;
+                transform: scale(0.8);
+            }
+        }
+
+        h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: clamp(2.4rem, 5vw, 3.8rem);
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            line-height: 1;
+            color: #fff;
+            margin-bottom: 14px;
+        }
+
+        h1 span {
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            font-size: 15px;
+            color: var(--muted2);
+            font-weight: 300;
+            letter-spacing: 0.01em;
+        }
+
+        /* ── INPUT PANEL ── */
+        .input-panel {
+            background: var(--bg2);
+            border: 1px solid var(--border2);
+            border-radius: 20px;
+            padding: 28px;
+            margin-bottom: 32px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .input-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            opacity: 0.4;
+        }
+
+        .input-label {
+            font-family: 'DM Mono', monospace;
+            font-size: 11px;
+            font-weight: 500;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .eq-input {
+            flex: 1;
+            background: var(--bg);
+            border: 1px solid var(--border2);
+            border-radius: 12px;
+            padding: 14px 20px;
+            font-family: 'DM Mono', monospace;
+            font-size: 18px;
+            color: var(--text);
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            letter-spacing: 0.02em;
+        }
+
+        .eq-input::placeholder {
+            color: var(--muted);
+        }
+
+        .eq-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(0, 212, 170, 0.1);
+        }
+
+        .btn-balance {
+            background: linear-gradient(135deg, var(--accent), #00b890);
+            color: #000;
+            border: none;
+            border-radius: 12px;
+            padding: 14px 28px;
+            font-family: 'Syne', sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-balance:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 24px rgba(0, 212, 170, 0.3);
+        }
+
+        .btn-balance:active {
+            transform: translateY(0);
+        }
+
+        .btn-balance:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .hint {
+            margin-top: 12px;
+            font-size: 12.5px;
+            color: var(--muted);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .hint-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--bg3);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 3px 10px;
+            font-family: 'DM Mono', monospace;
+            font-size: 12px;
+            color: var(--muted2);
+            cursor: pointer;
+            transition: border-color 0.2s, color 0.2s;
+        }
+
+        .hint-chip:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        /* ── ERROR ── */
+        .error-box {
+            display: none;
+            background: rgba(248, 113, 113, 0.06);
+            border: 1px solid rgba(248, 113, 113, 0.25);
+            border-radius: 12px;
+            padding: 14px 18px;
+            color: var(--red);
+            font-size: 14px;
+            margin-bottom: 24px;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .error-box.show {
+            display: flex;
+        }
+
+        /* ── RESULTS ── */
+        .results {
+            display: none;
+        }
+
+        .results.show {
+            display: block;
+        }
+
+        .eq-display {
+            background: var(--bg2);
+            border: 1px solid var(--border2);
+            border-radius: 20px;
+            padding: 32px 28px;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .eq-display::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse 60% 80% at 50% 120%, var(--glow), transparent 70%);
+            pointer-events: none;
+        }
+
+        .section-label {
+            font-family: 'DM Mono', monospace;
+            font-size: 10px;
+            font-weight: 500;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-label::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        .balanced-eq {
+            font-family: 'DM Mono', monospace;
+            font-size: clamp(1.1rem, 3vw, 1.55rem);
+            color: #fff;
+            text-align: center;
+            padding: 8px 0;
+            letter-spacing: 0.04em;
+            line-height: 1.8;
+            word-break: break-word;
+        }
+
+        .balanced-eq .coef {
+            color: var(--accent);
+            font-weight: 500;
+        }
+
+        .balanced-eq .reactant {
+            color: var(--reactant);
+        }
+
+        .balanced-eq .product {
+            color: var(--product);
+        }
+
+        .balanced-eq .arrow {
+            color: var(--muted2);
+            margin: 0 10px;
+            font-size: 1.1em;
+        }
+
+        .balanced-eq sub {
+            color: inherit;
+            font-size: 0.68em;
+            vertical-align: sub;
+        }
+
+        /* ── STATS GRID ── */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 18px 20px;
+            transition: border-color 0.2s;
+        }
+
+        .stat-card:hover {
+            border-color: var(--border2);
+        }
+
+        .stat-label {
+            font-family: 'DM Mono', monospace;
+            font-size: 10px;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .stat-unit {
+            font-size: 12px;
+            color: var(--muted2);
+            font-weight: 400;
+            margin-left: 4px;
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        /* ── TABLE ── */
+        .table-panel {
+            background: var(--bg2);
+            border: 1px solid var(--border2);
+            border-radius: 20px;
+            padding: 24px 0 0;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .table-header {
+            padding: 0 24px 16px;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table thead th {
+            font-family: 'DM Mono', monospace;
+            font-size: 10px;
+            font-weight: 500;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--muted);
+            padding: 10px 20px;
+            text-align: left;
+            background: var(--bg3);
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .data-table thead th:not(:first-child) {
+            text-align: center;
+        }
+
+        .data-table tbody tr {
+            border-bottom: 1px solid var(--border);
+            transition: background 0.15s;
+        }
+
+        .data-table tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        .data-table tbody tr:hover {
+            background: rgba(255, 255, 255, 0.025);
+        }
+
+        .data-table td {
+            padding: 16px 20px;
+            font-size: 14.5px;
+        }
+
+        .data-table td:not(:first-child) {
+            text-align: center;
+        }
+
+        .compound-cell {
+            font-family: 'DM Mono', monospace;
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        .tag {
+            display: inline-block;
+            font-size: 9px;
+            font-family: 'DM Mono', monospace;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            padding: 2px 7px;
+            border-radius: 4px;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+
+        .tag-r {
+            background: rgba(56, 189, 248, 0.1);
+            color: var(--reactant);
+            border: 1px solid rgba(56, 189, 248, 0.25);
+        }
+
+        .tag-p {
+            background: rgba(167, 139, 250, 0.1);
+            color: var(--product);
+            border: 1px solid rgba(167, 139, 250, 0.25);
+        }
+
+        .coef-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            background: rgba(0, 212, 170, 0.08);
+            border: 1px solid rgba(0, 212, 170, 0.2);
+            border-radius: 8px;
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: 16px;
+            color: var(--accent);
+        }
+
+        .mono {
+            font-family: 'DM Mono', monospace;
+        }
+
+        .text-warn {
+            color: var(--warn);
+        }
+
+        .text-em {
+            color: var(--accent);
+        }
+
+        .text-muted {
+            color: var(--muted2);
+        }
+
+        /* ── CONSERVATION ── */
+        .conservation {
+            background: var(--bg2);
+            border: 1px solid var(--border2);
+            border-radius: 20px;
+            padding: 24px 28px;
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .cons-side {
+            text-align: center;
+        }
+
+        .cons-label {
+            font-family: 'DM Mono', monospace;
+            font-size: 10px;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .cons-value {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.6rem;
+            font-weight: 700;
+        }
+
+        .cons-divider {
+            text-align: center;
+            font-size: 1.4rem;
+            color: var(--muted);
+        }
+
+        .cons-check {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            font-size: 12px;
+            margin-top: 4px;
+        }
+
+        /* ── ELEMENT BALANCE ── */
+        .elem-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .elem-chip {
+            background: var(--bg3);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 7px 14px;
+            font-family: 'DM Mono', monospace;
+            font-size: 12px;
+            color: var(--muted2);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .elem-chip .el {
+            color: var(--text);
+            font-weight: 500;
+        }
+
+        .elem-chip .count {
+            color: var(--accent);
+        }
+
+        /* ── ATOM PANEL ── */
+        .atom-panel {
+            background: var(--bg2);
+            border: 1px solid var(--border2);
+            border-radius: 20px;
+            padding: 24px 28px;
+            margin-bottom: 20px;
+        }
+
+        /* ══════════════════════════════════════════
+           STOICHIOMETRY CALCULATOR PANEL
+        ══════════════════════════════════════════ */
+        .stoich-panel {
+            background: var(--bg2);
+            border: 1px solid rgba(167, 139, 250, 0.3);
+            border-radius: 20px;
+            padding: 28px;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stoich-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--product), transparent);
+            opacity: 0.6;
+        }
+
+        .stoich-panel::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse 50% 60% at 50% 110%, rgba(167, 139, 250, 0.06), transparent 70%);
+            pointer-events: none;
+        }
+
+        .stoich-section-label {
+            font-family: 'DM Mono', monospace;
+            font-size: 10px;
+            font-weight: 500;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--product);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .stoich-section-label::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: rgba(167, 139, 250, 0.2);
+        }
+
+        /* Config row */
+        .stoich-config {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .stoich-field {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .stoich-field-label {
+            font-family: 'DM Mono', monospace;
+            font-size: 10px;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--muted2);
+        }
+
+        .stoich-select,
+        .stoich-number {
+            background: var(--bg);
+            border: 1px solid var(--border2);
+            border-radius: 10px;
+            padding: 11px 16px;
+            color: var(--text);
+            font-family: 'DM Mono', monospace;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .stoich-select {
+            cursor: pointer;
+        }
+
+        .stoich-select:focus,
+        .stoich-number:focus {
+            border-color: var(--product);
+            box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.12);
+        }
+
+        /* Mass input row */
+        .mass-input-row {
+            display: flex;
+            gap: 10px;
+            align-items: stretch;
+            margin-bottom: 20px;
+        }
+
+        .mass-input-wrap {
+            flex: 1;
+            position: relative;
+        }
+
+        .mass-input-wrap .stoich-number {
+            width: 100%;
+            padding-right: 60px;
+        }
+
+        .mass-unit-badge {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-family: 'DM Mono', monospace;
+            font-size: 11px;
+            color: var(--muted2);
+            pointer-events: none;
+        }
+
+        /* Unit toggle */
+        .unit-toggle {
+            display: flex;
+            background: var(--bg);
+            border: 1px solid var(--border2);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .unit-btn {
+            padding: 11px 20px;
+            font-family: 'DM Mono', monospace;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--muted2);
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            transition: background 0.15s, color 0.15s;
+        }
+
+        .unit-btn.active {
+            background: rgba(167, 139, 250, 0.15);
+            color: var(--product);
+        }
+
+        /* Target toggle */
+        .target-toggle {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .target-btn {
+            flex: 1;
+            min-width: 120px;
+            padding: 12px 16px;
+            background: var(--bg);
+            border: 1px solid var(--border2);
+            border-radius: 10px;
+            color: var(--muted2);
+            font-family: 'DM Mono', monospace;
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 0.06em;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.18s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .target-btn:hover {
+            border-color: var(--border2);
+            color: var(--text);
+        }
+
+        .target-btn.active-r {
+            background: rgba(56, 189, 248, 0.08);
+            border-color: rgba(56, 189, 248, 0.35);
+            color: var(--reactant);
+        }
+
+        .target-btn.active-p {
+            background: rgba(167, 139, 250, 0.08);
+            border-color: rgba(167, 139, 250, 0.35);
+            color: var(--product);
+        }
+
+        .target-btn.active-all {
+            background: rgba(0, 212, 170, 0.08);
+            border-color: rgba(0, 212, 170, 0.35);
+            color: var(--accent);
+        }
+
+        .btn-calc {
+            width: 100%;
+            background: linear-gradient(135deg, #7c3aed, var(--product));
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            padding: 14px;
+            font-family: 'Syne', sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: 0.03em;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 0;
+        }
+
+        .btn-calc:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 28px rgba(167, 139, 250, 0.3);
+        }
+
+        .btn-calc:active {
+            transform: translateY(0);
+        }
+
+        .btn-calc:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* ── STOICH RESULTS ── */
+        .stoich-results {
+            display: none;
+            margin-top: 24px;
+        }
+
+        .stoich-results.show {
+            display: block;
+        }
+
+        /* Divider */
+        .stoich-divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(167, 139, 250, 0.25), transparent);
+            margin-bottom: 24px;
+        }
+
+        /* Reference compound highlight */
+        .ref-highlight {
+            background: rgba(0, 212, 170, 0.05);
+            border: 1px solid rgba(0, 212, 170, 0.2);
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+
+        .ref-highlight-label {
+            font-family: 'DM Mono', monospace;
+            font-size: 10px;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--muted2);
+            white-space: nowrap;
+        }
+
+        .ref-formula {
+            font-family: 'DM Mono', monospace;
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        .ref-data {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .ref-datum {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .ref-datum-label {
+            font-family: 'DM Mono', monospace;
+            font-size: 9px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+
+        .ref-datum-value {
+            font-family: 'Syne', sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        /* Stoich result table */
+        .stoich-table-wrap {
+            border-radius: 14px;
+            overflow: hidden;
+            border: 1px solid var(--border2);
+            margin-bottom: 16px;
+        }
+
+        .stoich-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .stoich-table thead th {
+            font-family: 'DM Mono', monospace;
+            font-size: 10px;
+            font-weight: 500;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--muted);
+            padding: 10px 16px;
+            text-align: left;
+            background: var(--bg3);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .stoich-table thead th:not(:first-child) {
+            text-align: center;
+        }
+
+        .stoich-table tbody tr {
+            border-bottom: 1px solid var(--border);
+            transition: background 0.15s;
+        }
+
+        .stoich-table tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        .stoich-table tbody tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .stoich-table tbody tr.is-ref {
+            background: rgba(0, 212, 170, 0.04);
+        }
+
+        .stoich-table td {
+            padding: 14px 16px;
+            font-size: 14px;
+        }
+
+        .stoich-table td:not(:first-child) {
+            text-align: center;
+        }
+
+        /* Ratio visualization bar */
+        .ratio-bar-wrap {
+            background: var(--bg3);
+            border-radius: 4px;
+            height: 4px;
+            margin-top: 4px;
+            overflow: hidden;
+        }
+
+        .ratio-bar {
+            height: 100%;
+            border-radius: 4px;
+            background: linear-gradient(90deg, var(--product), var(--reactant));
+            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Atomic weights breakdown */
+        .aw-breakdown {
+            background: var(--bg3);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin-bottom: 16px;
+        }
+
+        .aw-breakdown-title {
+            font-family: 'DM Mono', monospace;
+            font-size: 10px;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .aw-breakdown-title::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        .aw-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .aw-chip {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            min-width: 72px;
+        }
+
+        .aw-el {
+            font-family: 'Syne', sans-serif;
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .aw-mass {
+            font-family: 'DM Mono', monospace;
+            font-size: 11px;
+            color: var(--warn);
+        }
+
+        .aw-count {
+            font-family: 'DM Mono', monospace;
+            font-size: 10px;
+            color: var(--muted2);
+        }
+
+        /* Summary box */
+        .stoich-summary {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .summary-card {
+            background: var(--bg3);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px 16px;
+            text-align: center;
+        }
+
+        .summary-card-label {
+            font-family: 'DM Mono', monospace;
+            font-size: 9px;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 6px;
+        }
+
+        .summary-card-value {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .summary-card-unit {
+            font-size: 11px;
+            color: var(--muted2);
+            margin-left: 3px;
+        }
+
+        /* Spinner */
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .spin {
+            animation: spin 0.8s linear infinite;
+            display: inline-block;
+        }
+
+        /* Animations */
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(16px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .results.show>* {
+            animation: fadeUp 0.4s ease both;
+        }
+
+        .results.show>*:nth-child(1) {
+            animation-delay: 0s;
+        }
+
+        .results.show>*:nth-child(2) {
+            animation-delay: 0.06s;
+        }
+
+        .results.show>*:nth-child(3) {
+            animation-delay: 0.12s;
+        }
+
+        .results.show>*:nth-child(4) {
+            animation-delay: 0.18s;
+        }
+
+        .results.show>*:nth-child(5) {
+            animation-delay: 0.24s;
+        }
+
+        .results.show>*:nth-child(6) {
+            animation-delay: 0.30s;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .stoich-results.show {
+            animation: fadeIn 0.35s ease;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .conservation {
+                grid-template-columns: 1fr;
+            }
+
+            .cons-divider {
+                transform: rotate(90deg);
+            }
+
+            .input-row {
+                flex-direction: column;
+            }
+
+            .btn-balance {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .stoich-config {
+                grid-template-columns: 1fr;
+            }
+
+            .stoich-summary {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="grid-bg"></div>
+
+    <div class="container">
+
+        <!-- Header -->
+        <div class="header">
+            <div class="badge">Herramienta Química</div>
+            <h1>Estequio<span>metría</span></h1>
+            <p class="subtitle">Balanceo algebraico · Masas molares · Conservación de masa · Cálculo estequiométrico</p>
+        </div>
+
+        <!-- Input -->
+        <div class="input-panel">
+            <div class="input-label">
+                <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 11h.01M12 11h.01M15 11h.01M4 19h16a2 2 0 002-2V7a2 2 0 00-2-2H4a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                Ecuación química
+            </div>
+            <div class="input-row">
+                <input type="text" id="ecuacion" class="eq-input" placeholder="C8H18 + O2 -> CO2 + H2O"
+                    autocomplete="off" spellcheck="false">
+                <button class="btn-balance" id="btnBalance" onclick="run()">
+                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                            d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                    Balancear
+                </button>
+            </div>
+            <div class="hint">
+                <span style="color:var(--muted); font-size:12px; align-self:center;">Ejemplos:</span>
+                <span class="hint-chip" onclick="setEq('H2 + O2 -> H2O')">H₂ + O₂ → H₂O</span>
+                <span class="hint-chip" onclick="setEq('Fe + O2 -> Fe2O3')">Fe + O₂ → Fe₂O₃</span>
+                <span class="hint-chip" onclick="setEq('C8H18 + O2 -> CO2 + H2O')">Combustión gasolina</span>
+                <span class="hint-chip" onclick="setEq('Al + HCl -> AlCl3 + H2')">Al + HCl</span>
+                <span class="hint-chip" onclick="setEq('KMnO4 + HCl -> KCl + MnCl2 + H2O + Cl2')">KMnO₄ + HCl</span>
+                <span class="hint-chip" onclick="setEq('Ca3(PO4)2 + H2SO4 -> CaSO4 + H3PO4')">Fosfato cálcico</span>
+            </div>
+        </div>
+
+        <!-- Error -->
+        <div class="error-box" id="errorBox">
+            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <circle cx="12" cy="12" r="10" stroke-width="2" />
+                <path stroke-linecap="round" stroke-width="2" d="M12 8v4m0 4h.01" />
+            </svg>
+            <span id="errorText"></span>
+        </div>
+
+        <!-- Results -->
+        <div class="results" id="results">
+
+            <!-- Balanced equation -->
+            <div class="eq-display">
+                <div class="section-label">Ecuación balanceada</div>
+                <div class="balanced-eq" id="balancedEq"></div>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-grid" id="statsGrid"></div>
+
+            <!-- Table -->
+            <div class="table-panel">
+                <div class="table-header">
+                    <div class="section-label">Compuestos · Coeficientes · Masas</div>
+                </div>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Compuesto</th>
+                            <th>Coef.</th>
+                            <th>Moles</th>
+                            <th>M. Molar (g/mol)</th>
+                            <th>Masa (g)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+
+            <!-- Conservation -->
+            <div class="conservation" id="conservDiv"></div>
+
+            <!-- Atom balance verification -->
+            <div class="atom-panel" id="atomPanel"></div>
+
+            <!-- ══════════════════════════════════════
+             STOICHIOMETRY CALCULATOR
+        ══════════════════════════════════════ -->
+            <div class="stoich-panel" id="stoichPanel">
+                <div class="stoich-section-label">
+                    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                    Calculadora estequiométrica
+                </div>
+
+                <!-- Step 1: Known compound -->
+                <div class="stoich-config">
+                    <div class="stoich-field">
+                        <div class="stoich-field-label">Compuesto de referencia (conocido)</div>
+                        <select class="stoich-select" id="refCompound"></select>
+                    </div>
+                    <div class="stoich-field">
+                        <div class="stoich-field-label">Quiero encontrar la masa de</div>
+                        <div class="target-toggle" id="targetToggle">
+                            <button class="target-btn active-r" data-target="reactants"
+                                onclick="setTarget(this,'active-r')">
+                                <span
+                                    style="width:7px;height:7px;border-radius:50%;background:var(--reactant);display:inline-block;flex-shrink:0"></span>
+                                Reactivos
+                            </button>
+                            <button class="target-btn" data-target="products" onclick="setTarget(this,'active-p')">
+                                <span
+                                    style="width:7px;height:7px;border-radius:50%;background:var(--product);display:inline-block;flex-shrink:0"></span>
+                                Productos
+                            </button>
+                            <button class="target-btn" data-target="all" onclick="setTarget(this,'active-all')">
+                                <span
+                                    style="width:7px;height:7px;border-radius:50%;background:var(--accent);display:inline-block;flex-shrink:0"></span>
+                                Todos
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2: Mass input -->
+                <div style="margin-bottom:8px;">
+                    <div class="stoich-field-label" style="margin-bottom:10px;">Masa conocida del compuesto de
+                        referencia</div>
+                    <div class="mass-input-row">
+                        <div class="mass-input-wrap">
+                            <input type="number" id="massInput" class="stoich-number" placeholder="Ej: 100"
+                                min="0.000001" step="any">
+                            <span class="mass-unit-badge" id="massUnitBadge">g</span>
+                        </div>
+                        <div class="unit-toggle">
+                            <button class="unit-btn active" id="btnG" onclick="setUnit('g')">g</button>
+                            <button class="unit-btn" id="btnKg" onclick="setUnit('kg')">kg</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Calculate button -->
+                <button class="btn-calc" id="btnCalc" onclick="calcStoich()">
+                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                            d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 11h.01M12 11h.01M15 11h.01M4 19h16a2 2 0 002-2V7a2 2 0 00-2-2H4a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                    Calcular estequiometría
+                </button>
+
+                <!-- Stoich Results -->
+                <div class="stoich-results" id="stoichResults">
+                    <div class="stoich-divider"></div>
+                    <div id="stoichResultsInner"></div>
+                </div>
+            </div>
+
+        </div><!-- /results -->
+    </div><!-- /container -->
+
+    <script>
+        // ══════════════════════════════════════════════════════
+        //  ATOMIC MASSES (IUPAC 2021)
+        // ══════════════════════════════════════════════════════
+        const AM = {
+            H: 1.008, He: 4.003, Li: 6.941, Be: 9.012, B: 10.81, C: 12.011, N: 14.007,
+            O: 15.999, F: 18.998, Ne: 20.18, Na: 22.990, Mg: 24.305, Al: 26.982, Si: 28.086,
+            P: 30.974, S: 32.06, Cl: 35.45, Ar: 39.948, K: 39.098, Ca: 40.078, Sc: 44.956,
+            Ti: 47.867, V: 50.942, Cr: 51.996, Mn: 54.938, Fe: 55.845, Co: 58.933, Ni: 58.693,
+            Cu: 63.546, Zn: 65.38, Ga: 69.723, Ge: 72.63, As: 74.922, Se: 78.971, Br: 79.904,
+            Kr: 83.798, Rb: 85.468, Sr: 87.62, Y: 88.906, Zr: 91.224, Ag: 107.868, Cd: 112.414,
+            Sn: 118.71, Sb: 121.76, I: 126.904, Ba: 137.327, Pb: 207.2, Au: 196.967, Hg: 200.592,
+            Mo: 95.96, W: 183.84, Pt: 195.08, Pd: 106.42
+        };
+
+        // ══════════════════════════════════════════════════════
+        //  FRACTION ARITHMETIC
+        // ══════════════════════════════════════════════════════
+        function gcd(a, b) { a = Math.abs(a); b = Math.abs(b); while (b) { [a, b] = [b, a % b]; } return a; }
+        function lcm(a, b) { return a / gcd(a, b) * b; }
+        function fAdd(a, b) { return fSimp([a[0] * b[1] + b[0] * a[1], a[1] * b[1]]); }
+        function fMul(a, b) { return fSimp([a[0] * b[0], a[1] * b[1]]); }
+        function fSimp(f) {
+            if (f[0] === 0) return [0, 1];
+            const g = gcd(Math.abs(f[0]), Math.abs(f[1]));
+            const sign = f[1] < 0 ? -1 : 1;
+            return [sign * f[0] / g, sign * f[1] / g];
+        }
+        function fNeg(f) { return [-f[0], f[1]]; }
+        function fDiv(a, b) { return fSimp([a[0] * b[1], a[1] * b[0]]); }
+        function fIsZero(f) { return f[0] === 0; }
+        function fToNum(f) { return f[0] / f[1]; }
+
+        // ══════════════════════════════════════════════════════
+        //  FORMULA PARSER
+        // ══════════════════════════════════════════════════════
+        function parseFormula(s) {
+            const stack = [{}];
+            const merge = (target, src, mul) => {
+                for (const [el, cnt] of Object.entries(src))
+                    target[el] = (target[el] || 0) + cnt * mul;
+            };
+            let i = 0;
+            while (i < s.length) {
+                const ch = s[i];
+                if (ch === '(') { stack.push({}); i++; }
+                else if (ch === ')') {
+                    i++;
+                    let numStr = '';
+                    while (i < s.length && /\d/.test(s[i])) { numStr += s[i]; i++; }
+                    const mul = numStr ? parseInt(numStr) : 1;
+                    const top = stack.pop();
+                    merge(stack[stack.length - 1], top, mul);
+                } else if (/[A-Z]/.test(ch)) {
+                    let el = ch; i++;
+                    while (i < s.length && /[a-z]/.test(s[i])) { el += s[i]; i++; }
+                    let numStr = '';
+                    while (i < s.length && /\d/.test(s[i])) { numStr += s[i]; i++; }
+                    const cnt = numStr ? parseInt(numStr) : 1;
+                    stack[stack.length - 1][el] = (stack[stack.length - 1][el] || 0) + cnt;
+                } else { i++; }
+            }
+            return stack[0];
+        }
+
+        function getMolarMass(formula) {
+            const elems = parseFormula(formula);
+            let mass = 0;
+            for (const [el, cnt] of Object.entries(elems)) {
+                if (!AM[el]) throw new Error(`Elemento desconocido: ${el}`);
+                mass += AM[el] * cnt;
+            }
+            return mass;
+        }
+
+        // ══════════════════════════════════════════════════════
+        //  GAUSSIAN ELIMINATION
+        // ══════════════════════════════════════════════════════
+        function gaussFrac(mat) {
+            const rows = mat.length, cols = mat[0].length;
+            let M = mat.map(row => row.map(v => [v, 1]));
+            let pivcol = 0;
+            const pivrows = [];
+
+            for (let r = 0; r < rows && pivcol < cols - 1; r++) {
+                let pivr = -1;
+                for (let k = r; k < rows; k++) {
+                    if (!fIsZero(M[k][pivcol])) { pivr = k; break; }
+                }
+                if (pivr === -1) { r--; pivcol++; continue; }
+                [M[r], M[pivr]] = [M[pivr], M[r]];
+                pivrows.push(pivcol);
+                const piv = M[r][pivcol];
+                for (let j = pivcol; j < cols; j++) M[r][j] = fDiv(M[r][j], piv);
+                for (let k = 0; k < rows; k++) {
+                    if (k === r || fIsZero(M[k][pivcol])) continue;
+                    const factor = M[k][pivcol];
+                    for (let j = pivcol; j < cols; j++)
+                        M[k][j] = fAdd(M[k][j], fMul(fNeg(factor), M[r][j]));
+                }
+                pivcol++;
+            }
+
+            const allCols = cols - 1;
+            const freeCols = [];
+            for (let c = 0; c < allCols; c++) {
+                if (!pivrows.includes(c)) freeCols.push(c);
+            }
+
+            if (freeCols.length === 0) {
+                const x = new Array(allCols).fill([1, 1]);
+                for (let i = 0; i < pivrows.length; i++) x[pivrows[i]] = M[i][allCols];
+                return normalize(x);
+            }
+
+            const x = new Array(allCols).fill([0, 1]);
+            for (const fc of freeCols) x[fc] = [1, 1];
+            for (let i = pivrows.length - 1; i >= 0; i--) {
+                const pc = pivrows[i];
+                let s = [0, 1];
+                for (let j = pc + 1; j < allCols; j++) s = fAdd(s, fMul(M[i][j], x[j]));
+                x[pc] = fAdd(M[i][allCols], fNeg(s));
+            }
+            return normalize(x);
+        }
+
+        function normalize(fracs) {
+            const denoms = fracs.map(f => Math.abs(f[1]));
+            let L = 1;
+            for (const d of denoms) L = lcm(L, d);
+            let ints = fracs.map(f => Math.round(fToNum(f) * L));
+            if (ints.some(v => v < 0)) ints = ints.map(v => -v);
+            if (ints.some(v => v <= 0)) throw new Error("No se encontró solución con coeficientes positivos.");
+            let g = ints.reduce((a, b) => gcd(a, b));
+            return ints.map(v => v / g);
+        }
+
+        // ══════════════════════════════════════════════════════
+        //  MAIN BALANCER
+        // ══════════════════════════════════════════════════════
+        function balance(raw) {
+            let s = raw.trim()
+                .replace(/→|⟶|=/g, '->')
+                .replace(/\s+/g, '');
+
+            const subMap = { '₀': '0', '₁': '1', '₂': '2', '₃': '3', '₄': '4', '₅': '5', '₆': '6', '₇': '7', '₈': '8', '₉': '9' };
+            s = s.replace(/[₀-₉]/g, c => subMap[c] || c);
+
+            if (!s.includes('->')) throw new Error("Usa '->' o '→' para separar reactivos y productos.");
+
+            const [lhs, rhs] = s.split('->');
+            if (!lhs || !rhs) throw new Error("La ecuación está incompleta.");
+
+            const splitPlus = str => {
+                const parts = []; let cur = '', depth = 0;
+                for (const ch of str) {
+                    if (ch === '(') depth++;
+                    else if (ch === ')') depth--;
+                    if (ch === '+' && depth === 0) { parts.push(cur); cur = ''; }
+                    else cur += ch;
+                }
+                if (cur) parts.push(cur);
+                return parts.map(p => p.trim()).filter(Boolean);
+            };
+
+            const reactants = splitPlus(lhs);
+            const products = splitPlus(rhs);
+
+            if (reactants.length === 0 || products.length === 0)
+                throw new Error("La ecuación necesita al menos un reactivo y un producto.");
+
+            const all = [...reactants, ...products];
+            const n = all.length;
+
+            const elemSet = new Set();
+            const parsed = all.map(f => { const p = parseFormula(f); Object.keys(p).forEach(e => elemSet.add(e)); return p; });
+            const elements = Array.from(elemSet);
+            if (elements.length === 0) throw new Error("No se detectaron elementos.");
+
+            const matrix = elements.map(el =>
+                [...all.map((_, i) => {
+                    const cnt = parsed[i][el] || 0;
+                    return i < reactants.length ? cnt : -cnt;
+                }), 0]
+            );
+
+            let coefficients;
+            try { coefficients = gaussFrac(matrix); }
+            catch (e) { throw new Error("No se puede balancear esta ecuación. " + e.message); }
+
+            if (coefficients.length !== n) throw new Error("Error interno en el sistema de ecuaciones.");
+
+            for (const el of elements) {
+                let lhsSum = 0, rhsSum = 0;
+                reactants.forEach((_, i) => lhsSum += (parsed[i][el] || 0) * coefficients[i]);
+                products.forEach((_, i) => rhsSum += (parsed[reactants.length + i][el] || 0) * coefficients[reactants.length + i]);
+                if (Math.abs(lhsSum - rhsSum) > 0.001)
+                    throw new Error(`La ecuación no balancea para el elemento ${el}.`);
+            }
+
+            const molarMasses = all.map(getMolarMass);
+            const masses = coefficients.map((c, i) => c * molarMasses[i]);
+            const totalR = reactants.reduce((s, _, i) => s + masses[i], 0);
+            const totalP = products.reduce((s, _, i) => s + masses[reactants.length + i], 0);
+
+            const atomCounts = {};
+            for (const el of elements) {
+                let lhsN = 0, rhsN = 0;
+                reactants.forEach((_, i) => lhsN += (parsed[i][el] || 0) * coefficients[i]);
+                products.forEach((_, i) => rhsN += (parsed[reactants.length + i][el] || 0) * coefficients[reactants.length + i]);
+                atomCounts[el] = { lhs: lhsN, rhs: rhsN };
+            }
+
+            return { reactants, products, all, coefficients, elements, parsed, molarMasses, masses, totalR, totalP, atomCounts };
+        }
+
+        // ══════════════════════════════════════════════════════
+        //  FORMAT FORMULA → HTML
+        // ══════════════════════════════════════════════════════
+        function fmtFormula(s) {
+            return s
+                .replace(/(\d+)/g, '<sub>$1</sub>')
+                .replace(/\)/g, ')<span style="font-size:0.9em"></span>');
+        }
+
+        // ══════════════════════════════════════════════════════
+        //  GLOBAL STATE
+        // ══════════════════════════════════════════════════════
+        let currentRes = null;
+        let currentUnit = 'g';
+        let currentTarget = 'reactants';
+
+        // ══════════════════════════════════════════════════════
+        //  STOICH UI HELPERS
+        // ══════════════════════════════════════════════════════
+        function setUnit(u) {
+            currentUnit = u;
+            document.getElementById('massUnitBadge').textContent = u;
+            document.getElementById('btnG').classList.toggle('active', u === 'g');
+            document.getElementById('btnKg').classList.toggle('active', u === 'kg');
+        }
+
+        function setTarget(btn, cls) {
+            document.querySelectorAll('.target-btn').forEach(b => b.className = 'target-btn');
+            btn.className = 'target-btn ' + cls;
+            currentTarget = btn.dataset.target;
+        }
+
+        function populateRefCompound(res) {
+            const sel = document.getElementById('refCompound');
+            sel.innerHTML = '';
+            res.all.forEach((f, i) => {
+                const isR = i < res.reactants.length;
+                const opt = document.createElement('option');
+                opt.value = i;
+                opt.textContent = `${f}  (${isR ? 'Reactivo' : 'Producto'}, coef. ${res.coefficients[i]}, ${res.molarMasses[i].toFixed(3)} g/mol)`;
+                sel.appendChild(opt);
+            });
+        }
+
+        // ══════════════════════════════════════════════════════
+        //  STOICHIOMETRY CALCULATION
+        // ══════════════════════════════════════════════════════
+        function calcStoich() {
+            if (!currentRes) { alert('Primero balancea una ecuación.'); return; }
+
+            const res = currentRes;
+            const refIdx = parseInt(document.getElementById('refCompound').value);
+            const massVal = parseFloat(document.getElementById('massInput').value);
+
+            if (isNaN(massVal) || massVal <= 0) {
+                alert('Ingresa una masa válida mayor que cero.');
+                return;
+            }
+
+            // Convert to grams
+            const massG = currentUnit === 'kg' ? massVal * 1000 : massVal;
+            const massKg = massG / 1000;
+
+            const refFormula = res.all[refIdx];
+            const refCoef = res.coefficients[refIdx];
+            const refMolarMass = res.molarMasses[refIdx];
+
+            // Moles of reference compound
+            const refMoles = massG / refMolarMass;
+
+            // Determine which indices to show
+            const nr = res.reactants.length;
+            let targetIndices;
+            if (currentTarget === 'reactants') targetIndices = res.reactants.map((_, i) => i);
+            else if (currentTarget === 'products') targetIndices = res.products.map((_, i) => nr + i);
+            else targetIndices = res.all.map((_, i) => i);
+
+            // Build results for each target compound
+            const rows = targetIndices.map(idx => {
+                const f = res.all[idx];
+                const coef = res.coefficients[idx];
+                const mm = res.molarMasses[idx];
+                const isRef = idx === refIdx;
+                // stoich ratio: moles_target / moles_ref = coef_target / coef_ref
+                const molesTarget = refMoles * (coef / refCoef);
+                const massTarget = molesTarget * mm;
+                const isR = idx < nr;
+                return { f, coef, mm, isRef, molesTarget, massTarget, isR };
+            });
+
+            // Max mass for ratio bars
+            const maxMass = Math.max(...rows.map(r => r.massTarget));
+
+            // Atomic weights breakdown for reference compound
+            const refElems = parseFormula(refFormula);
+            const awBreakdown = Object.entries(refElems).map(([el, cnt]) => {
+                const aw = AM[el] || 0;
+                const contrib = aw * cnt;
+                return { el, cnt, aw, contrib };
+            });
+
+            // Render
+            const inner = document.getElementById('stoichResultsInner');
+
+            // Reference info box
+            const refMassDisplay = currentUnit === 'kg'
+                ? `${massVal.toFixed(4)} kg (${massG.toFixed(4)} g)`
+                : `${massVal.toFixed(4)} g (${massKg.toFixed(6)} kg)`;
+
+            inner.innerHTML = `
+        <!-- Reference compound info -->
+        <div class="ref-highlight">
+            <div>
+                <div class="ref-highlight-label">Compuesto de referencia</div>
+                <div class="ref-formula">${fmtFormula(refFormula)}</div>
+            </div>
+            <div class="ref-data">
+                <div class="ref-datum">
+                    <div class="ref-datum-label">Masa dada</div>
+                    <div class="ref-datum-value" style="font-size:13px;">${refMassDisplay}</div>
+                </div>
+                <div class="ref-datum">
+                    <div class="ref-datum-label">Masa molar</div>
+                    <div class="ref-datum-value">${refMolarMass.toFixed(3)} <span style="font-size:11px;color:var(--muted2)">g/mol</span></div>
+                </div>
+                <div class="ref-datum">
+                    <div class="ref-datum-label">Moles</div>
+                    <div class="ref-datum-value">${refMoles.toFixed(6)} <span style="font-size:11px;color:var(--muted2)">mol</span></div>
+                </div>
+                <div class="ref-datum">
+                    <div class="ref-datum-label">Coeficiente</div>
+                    <div class="ref-datum-value">${refCoef}</div>
+                </div>
+            </div>
+        </div>
+ 
+        <!-- Atomic weights breakdown of reference -->
+        <div class="aw-breakdown">
+            <div class="aw-breakdown-title">Pesos atómicos de ${fmtFormula(refFormula)} (M = ${refMolarMass.toFixed(3)} g/mol)</div>
+            <div class="aw-grid">
+                ${awBreakdown.map(({ el, cnt, aw, contrib }) => `
+                    <div class="aw-chip">
+                        <div class="aw-el">${el}</div>
+                        <div class="aw-mass">${aw.toFixed(3)} g/mol</div>
+                        <div class="aw-count">×${cnt} = ${contrib.toFixed(3)} g/mol</div>
+                    </div>
+                `).join('')}
+                <div class="aw-chip" style="border-color:rgba(0,212,170,0.25);background:rgba(0,212,170,0.05);">
+                    <div class="aw-el" style="color:var(--accent)">Σ</div>
+                    <div class="aw-mass" style="color:var(--accent)">${refMolarMass.toFixed(3)} g/mol</div>
+                    <div class="aw-count">masa molar</div>
+                </div>
+            </div>
+        </div>
+ 
+        <!-- Results table -->
+        <div class="stoich-table-wrap">
+            <table class="stoich-table">
+                <thead>
+                    <tr>
+                        <th>Compuesto</th>
+                        <th>Coef.</th>
+                        <th>Razón estequiométrica</th>
+                        <th>Moles calculados</th>
+                        <th>M. Molar (g/mol)</th>
+                        <th>Masa (g)</th>
+                        <th>Masa (kg)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${rows.map(r => `
+                        <tr class="${r.isRef ? 'is-ref' : ''}">
+                            <td class="compound-cell">
+                                ${fmtFormula(r.f)}
+                                <span class="tag ${r.isR ? 'tag-r' : 'tag-p'}">${r.isR ? 'R' : 'P'}</span>
+                                ${r.isRef ? '<span class="tag" style="background:rgba(0,212,170,0.1);color:var(--accent);border:1px solid rgba(0,212,170,0.3)">REF</span>' : ''}
+                            </td>
+                            <td><div class="coef-badge">${r.coef}</div></td>
+                            <td class="mono" style="color:var(--muted2)">
+                                ${r.coef}/${refCoef}
+                                <div class="ratio-bar-wrap"><div class="ratio-bar" style="width:${Math.min(100, (r.coef / Math.max(...rows.map(x => x.coef))) * 100)}%"></div></div>
+                            </td>
+                            <td class="mono text-em">${r.molesTarget.toFixed(6)}</td>
+                            <td class="mono text-warn">${r.mm.toFixed(3)}</td>
+                            <td class="mono" style="color:#fff;font-weight:600">${r.massTarget.toFixed(4)}</td>
+                            <td class="mono" style="color:var(--muted2)">${(r.massTarget / 1000).toFixed(6)}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </div>
+ 
+        <!-- Summary -->
+        <div class="stoich-summary">
+            <div class="summary-card">
+                <div class="summary-card-label">Masa total calculada</div>
+                <div class="summary-card-value">
+                    ${rows.reduce((s, r) => s + r.massTarget, 0).toFixed(4)}
+                    <span class="summary-card-unit">g</span>
+                </div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-card-label">En kilogramos</div>
+                <div class="summary-card-value">
+                    ${(rows.reduce((s, r) => s + r.massTarget, 0) / 1000).toFixed(6)}
+                    <span class="summary-card-unit">kg</span>
+                </div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-card-label">Moles de referencia</div>
+                <div class="summary-card-value">
+                    ${refMoles.toFixed(6)}
+                    <span class="summary-card-unit">mol</span>
+                </div>
+            </div>
+        </div>
+    `;
+
+            const stoichResults = document.getElementById('stoichResults');
+            stoichResults.classList.add('show');
+            stoichResults.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        // ══════════════════════════════════════════════════════
+        //  RENDER (balancing results)
+        // ══════════════════════════════════════════════════════
+        function render(res) {
+            const { reactants, products, all, coefficients, molarMasses, masses, totalR, totalP, atomCounts, elements } = res;
+            const nr = reactants.length;
+
+            const fmtTerm = (formula, coef, cls) => {
+                const fmted = fmtFormula(formula);
+                const coefHtml = coef === 1 ? '' : `<span class="coef">${coef} </span>`;
+                return `${coefHtml}<span class="${cls}">${fmted}</span>`;
+            };
+
+            const lhsHtml = reactants.map((f, i) => fmtTerm(f, coefficients[i], 'reactant')).join(' <span style="color:var(--muted2)">+</span> ');
+            const rhsHtml = products.map((f, i) => fmtTerm(f, coefficients[nr + i], 'product')).join(' <span style="color:var(--muted2)">+</span> ');
+            document.getElementById('balancedEq').innerHTML = `${lhsHtml} <span class="arrow">⟶</span> ${rhsHtml}`;
+
+            const statsGrid = document.getElementById('statsGrid');
+            const maxCoef = Math.max(...coefficients);
+            statsGrid.innerHTML = `
+        <div class="stat-card">
+            <div class="stat-label">Compuestos</div>
+            <div class="stat-value">${all.length}<span class="stat-unit">total</span></div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Elementos únicos</div>
+            <div class="stat-value">${elements.length}<span class="stat-unit">tipos</span></div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Coef. máximo</div>
+            <div class="stat-value">${maxCoef}<span class="stat-unit">entero</span></div>
+        </div>
+    `;
+
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            all.forEach((f, i) => {
+                const isR = i < nr;
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+            <td class="compound-cell">${fmtFormula(f)}<span class="tag ${isR ? 'tag-r' : 'tag-p'}">${isR ? 'R' : 'P'}</span></td>
+            <td><div class="coef-badge">${coefficients[i]}</div></td>
+            <td class="mono text-em">${coefficients[i]}.000</td>
+            <td class="mono text-warn">${molarMasses[i].toFixed(3)}</td>
+            <td class="mono" style="color:#fff;font-weight:600">${masses[i].toFixed(3)} g</td>
+        `;
+                tbody.appendChild(tr);
+            });
+
+            const diff = Math.abs(totalR - totalP);
+            const balanced = diff < 0.01;
+            document.getElementById('conservDiv').innerHTML = `
+        <div class="cons-side">
+            <div class="cons-label" style="color:var(--reactant)">Reactivos</div>
+            <div class="cons-value" style="color:var(--reactant)">${totalR.toFixed(3)}<span style="font-size:0.55em;color:var(--muted2);margin-left:4px">g</span></div>
+        </div>
+        <div class="cons-divider">=</div>
+        <div class="cons-side">
+            <div class="cons-label" style="color:var(--product)">Productos</div>
+            <div class="cons-value" style="color:var(--product)">${totalP.toFixed(3)}<span style="font-size:0.55em;color:var(--muted2);margin-left:4px">g</span></div>
+            <div class="cons-check" style="color:${balanced ? 'var(--accent)' : 'var(--red)'}">
+                ${balanced
+                    ? `<svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg> Masa conservada`
+                    : `⚠ Diferencia: ${diff.toFixed(3)}g`
+                }
+            </div>
+        </div>
+    `;
+
+            const atomPanel = document.getElementById('atomPanel');
+            const chipsHtml = elements.map(el => {
+                const { lhs, rhs } = atomCounts[el];
+                const ok = Math.abs(lhs - rhs) < 0.001;
+                return `<div class="elem-chip" style="${ok ? '' : 'border-color:var(--red);color:var(--red)'}">
+            <span class="el">${el}</span>
+            <span class="count">${lhs}</span>
+            <span style="color:var(--muted);font-size:10px">→</span>
+            <span class="count">${rhs}</span>
+            ${ok ? '<svg width="11" height="11" fill="none" stroke="var(--accent)" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>' : '⚠'}
+        </div>`;
+            }).join('');
+
+            atomPanel.innerHTML = `
+        <div class="section-label">Verificación atómica</div>
+        <div style="font-size:12px;color:var(--muted2);margin-bottom:12px">Átomos izquierda → derecha por elemento</div>
+        <div class="elem-grid">${chipsHtml}</div>
+    `;
+
+            // Populate stoich calculator
+            populateRefCompound(res);
+            // Reset stoich results
+            document.getElementById('stoichResults').classList.remove('show');
+            document.getElementById('stoichResultsInner').innerHTML = '';
+            document.getElementById('massInput').value = '';
+        }
+
+        // ══════════════════════════════════════════════════════
+        //  UI CONTROLLER
+        // ══════════════════════════════════════════════════════
+        function setEq(val) {
+            document.getElementById('ecuacion').value = val;
+            run();
+        }
+
+        function showError(msg) {
+            const box = document.getElementById('errorBox');
+            document.getElementById('errorText').textContent = msg;
+            box.classList.add('show');
+            document.getElementById('results').classList.remove('show');
+        }
+
+        function hideError() {
+            document.getElementById('errorBox').classList.remove('show');
+        }
+
+        function run() {
+            const input = document.getElementById('ecuacion').value.trim();
+            const btn = document.getElementById('btnBalance');
+            hideError();
+            if (!input) { showError('Ingresa una ecuación química.'); return; }
+
+            btn.disabled = true;
+            btn.innerHTML = `<span class="spin">⟳</span> Calculando…`;
+
+            setTimeout(() => {
+                try {
+                    const res = balance(input);
+                    currentRes = res;
+                    render(res);
+                    document.getElementById('results').classList.add('show');
+                } catch (e) {
+                    showError(e.message);
+                    currentRes = null;
+                }
+                btn.disabled = false;
+                btn.innerHTML = `<svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> Balancear`;
+            }, 80);
+        }
+
+        document.getElementById('ecuacion').addEventListener('keydown', e => {
+            if (e.key === 'Enter') run();
+        });
+    </script>
+</body>
+
+</html>
